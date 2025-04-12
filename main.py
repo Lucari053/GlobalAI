@@ -17,7 +17,8 @@ mistral.load_model(mistral_path, max_token, gpu_layers= 999)
 
 template = "[INST] Tu es un assistant francophone[/INST]"
 
-print("Built with CUDA:", llama_cpp.llama_model_loader.LLAMA_CUDA)
+print("GPU activé :", llama_cpp.llama_model_loader.LLAMA_CUDA)
+
 """
 
 response = mistral.infer(

@@ -1,1 +1,2 @@
 pip install locallm
+pip install llama-cpp-python
