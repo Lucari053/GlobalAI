@@ -1,8 +1,5 @@
 import MLG
 import stt
-import threading
-import time
-
 
 
 
@@ -16,7 +13,7 @@ def new_prompt(text):
     MLG.reponse(MLG_model, text)
 
 
-MLG_model = MLG.Load_MLG("")
+MLG_model = MLG.Load_MLG("C:/Users/lucas/OneDrive/Desktop/GlobalAI/Model/Meta-Llama-3-8B-Instruct-Q6_K.gguf")
 
 
 transcriber = stt.SpeechTranscriber(new_prompt, stop_generation)

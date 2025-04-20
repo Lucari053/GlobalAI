@@ -2,7 +2,8 @@ from langchain_community.llms import LlamaCpp
 from langchain_core.callbacks import CallbackManager, StreamingStdOutCallbackHandler
 from langchain_core.prompts import PromptTemplate
 from langchain.callbacks.base import BaseCallbackHandler
-
+from constants import *
+import time
 
 class QueueCallback(BaseCallbackHandler):
     def __init__(self, stop):
@@ -18,8 +19,7 @@ class QueueCallback(BaseCallbackHandler):
     def on_llm_end(self, *args, **kwargs):
         print("\n[Generation finished]")
 
-        
-    
+
 
 
 def Load_MLG(model_path):
@@ -27,7 +27,7 @@ def Load_MLG(model_path):
 
     global MLG_queue_callback
 
-
+    model_start_time = time.time()
 
     MLG_queue_callback = QueueCallback(stop = False)
 
@@ -35,18 +35,20 @@ def Load_MLG(model_path):
 
     model = LlamaCpp(
         model_path=model_path,
-        temperature=0.7,
-        streaming = True,
-        n_ctx=2048,
+        temperature=MLG_temperature,
+        streaming = MLG_Streaming,
+        n_ctx=MLG_ctx,
         n_gpu_layers=-1,
-        n_batch=512, 
-        max_tokens=256,
+        n_batch=MLG_batch, 
+        max_tokens=MLG_MaxToken,
         repeat_penalty=3,
-        top_p=0.9,
-        verbose=False,
+        top_p= MLG_top_p,
+        verbose=MLG_verbose,
         stop=["FIN", "[FIN]"],
         callback_manager = MLG_callback_manager
         )
+    
+    print(f"MLG initialiser en : {time.time() - model_start_time}sec")
     
     return model
 

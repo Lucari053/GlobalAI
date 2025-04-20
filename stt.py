@@ -3,15 +3,15 @@ import numpy as np
 from faster_whisper import WhisperModel
 import time
 import threading
-
+from constants import *
 
 class SpeechTranscriber:
     def __init__(self, new_prompt, stop_generation):
         # Initialisation du model et de variable editable
         self.model = WhisperModel("base", device="cuda")
-        self.tick_time = 0.1  # temps de refresh
-        self.silence_threshold = 0.001
-        self.silence_timeout = 1.5  # temps sans parler avant de couper
+        self.tick_time = STT_TickTime
+        self.silence_threshold = STT_silence_threshold
+        self.silence_timeout = STT_silence_timeout
         self.new_prompt = new_prompt
         self.stop_generation = stop_generation
 
@@ -41,6 +41,9 @@ class SpeechTranscriber:
         """
         Detecte si l'utilisateur parle par niveau sonore moyen
         """
+        if len(self.block_data) == 0:
+            return False
+        
         if np.mean(self.block_data ** 2) > self.silence_threshold:
             return True
         else:
@@ -52,7 +55,7 @@ class SpeechTranscriber:
         Record l'audio jusqu'à temps que l'utilisateur ne parle plus
         Retourne l'audio
         """
-        self.audio_data = np.empty((0, 1), dtype=np.float32)
+        self.audio_data = self.audio_data[-STT_Samplerate:]
         last_text = 0
 
         while time.time() - last_text < self.silence_timeout or last_text == 0:
@@ -70,8 +73,10 @@ class SpeechTranscriber:
         """
         Transcrit l'audio en texte en français
         """
-        segments, _ = self.model.transcribe(audio.flatten(), language="fr", beam_size=5)
+        start_transcribe_time = time.time()
+        segments, _ = self.model.transcribe(audio.flatten(), language="fr", beam_size=10)
         text = "".join([seg.text for seg in segments]).strip()
+        print(f"Time to transcribe : {time.time() - start_transcribe_time}")
         return text
 
 
@@ -80,7 +85,7 @@ class SpeechTranscriber:
         """
         Boucle principale qui écoute l'utilisateur et affiche le texte reconnu
         """
-        print("👌Initialiser")
+        print("STT Initialiser")
 
         def process_audio():
             """
@@ -92,7 +97,7 @@ class SpeechTranscriber:
             self.is_recording = False
 
 
-        with sd.InputStream(samplerate=16000, channels=1, callback=self.audio_callback):
+        with sd.InputStream(samplerate=STT_Samplerate, channels=1, callback=self.audio_callback):
             while True:
                 if self.is_recording:
                     self.stop_generation()
